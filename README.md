@@ -4,6 +4,8 @@ Work visibility and decision support centered on the **managing partner**. Engli
 
 SharePoint is the document store of record (ADR-001). Microsoft Graph is a stub in this local version. The application does not send client email.
 
+Repository: [github.com/Virgiliorobor/firmmgmt](https://github.com/Virgiliorobor/firmmgmt)
+
 ## Stack
 
 Next.js 15 App Router, TypeScript strict, Drizzle ORM, PostgreSQL 16 (or PGlite when `DATABASE_URL` is unset), Vitest, Playwright, Tailwind mapped only to CSS variables in `styles/tokens.css`.
@@ -53,15 +55,19 @@ Public routes: `/sign-in`, `/api/health`, `/api/auth/totp/*`, `/api/auth/microso
 
 ## Backup / restore / rollback
 
-Coolify daily Postgres backup is an owner hosting action (not in this local version). Restore application data by restoring Postgres (or replacing the PGlite directory). Restoring the database does **not** restore SharePoint files or Microsoft grants. Rollback: deploy a previous `main` SHA. Staging is not configured until `deployment_config.md` is filled.
+Coolify daily Postgres backup is an owner hosting action. Restore application data by restoring Postgres (or replacing the PGlite directory). Restoring the database does **not** restore SharePoint files or Microsoft grants. Rollback: deploy a previous `main` SHA.
 
 ## Staff personal data (PRIV-1)
 
 Export or delete **staff login** rows (`users`, `sessions`, `totp_credentials`) with a documented admin query. Never delete client work tables in application code.
 
-## Deploy
+## Deploy (Coolify)
 
-Dockerfile is multi-stage, non-root (`USER nextjs`), health at `/api/health`. GitHub Actions: typecheck, lint, unit/integration, build, image build, `npm audit`, gitleaks. Owner will create the GitHub remote later — do not invent a URL. `src/` may be its own git repo; do not push until the owner says so.
+Dockerfile is multi-stage, non-root (`USER nextjs`), health at `/api/health`. Point Coolify at this repository, branch `main`, Dockerfile build.
+
+Set at least in the Coolify panel (not in git): `DATABASE_URL` (Postgres), `SESSION_SECRET`, `FIELD_ENCRYPTION_KEY`, `APP_BASE_URL`, `AUTH_PROVIDER=totp-local`, and demo `DEMO_*` users if you want a first login. Run migrate/seed as a start command or one-off: `npm run db:migrate` then `npm run db:seed`.
+
+GitHub Actions: typecheck, lint, unit/integration, build, image build, `npm audit`, gitleaks.
 
 ## API (S01)
 
