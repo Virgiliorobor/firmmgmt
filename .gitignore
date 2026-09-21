@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+dist
+coverage
+playwright-report
+test-results
+blob-report
+.data
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+tsconfig.tsbuildinfo
+.vercel
+pglite-debug.log
