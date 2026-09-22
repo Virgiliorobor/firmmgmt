@@ -67,7 +67,7 @@ Export or delete **staff login** rows (`users`, `sessions`, `totp_credentials`) 
 
 Dockerfile is multi-stage, non-root (`USER nextjs`), container port **3847**, health at `/api/health`. Point Coolify at this repository, branch `main`, Dockerfile build. Set the Coolify/container port to **3847** (not 3000). The public URL can still be 443 via Coolify’s proxy.
 
-Set at least in the Coolify panel (not in git): `DATABASE_URL` (Postgres), `SESSION_SECRET`, `FIELD_ENCRYPTION_KEY`, `APP_BASE_URL`, `AUTH_PROVIDER=totp-local`, and demo `DEMO_*` users if you want a first login. Run migrate/seed as a start command or one-off: `npm run db:migrate` then `npm run db:seed`.
+Set at least in the Coolify panel (not in git): `DATABASE_URL` (Coolify Postgres), `SESSION_SECRET`, `FIELD_ENCRYPTION_KEY`, `APP_BASE_URL`, `AUTH_PROVIDER=totp-local`, and demo `DEMO_*` users if you want a first login. Do **not** copy `PGLITE_PATH=.data/dev` into Coolify. If `DATABASE_URL` is missing, the container uses an ephemeral file database under `/tmp` so the non-root process can start; that data is lost on every redeploy. Run migrate/seed as a start command or one-off: `npm run db:migrate` then `npm run db:seed`.
 
 GitHub Actions: typecheck, lint, unit/integration, build, image build, `npm audit`, gitleaks.
 

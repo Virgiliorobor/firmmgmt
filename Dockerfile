@@ -21,6 +21,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
+RUN mkdir -p /app/.data /tmp/lfm-pglite && chown -R nextjs:nodejs /app/.data /tmp/lfm-pglite
 USER nextjs
 ENV PORT=3847
 EXPOSE 3847

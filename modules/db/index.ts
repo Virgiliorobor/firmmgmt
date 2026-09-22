@@ -1,5 +1,3 @@
-import { mkdirSync } from "node:fs";
-import path from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 import { drizzle as drizzlePg } from "drizzle-orm/postgres-js";
@@ -7,6 +5,7 @@ import postgres from "postgres";
 import { schema } from "./schema";
 import { MIGRATIONS } from "./migrations";
 import { loadEnv } from "./env";
+import { resolvePglitePath } from "./pglite-path";
 
 export type AppDb = PgliteDatabase<typeof schema>;
 export type DbWriter = Pick<AppDb, "insert" | "select" | "update" | "delete">;
@@ -47,10 +46,8 @@ export async function openDatabase(options?: {
   }
 
   const memory = options?.memory === true;
-  const dataDir = memory ? undefined : options?.pglitePath ?? env.pglitePath;
-  if (dataDir) {
-    mkdirSync(path.resolve(dataDir), { recursive: true });
-  }
+  const preferredDir = memory ? undefined : options?.pglitePath ?? env.pglitePath;
+  const dataDir = preferredDir ? resolvePglitePath(preferredDir) : undefined;
   const client = dataDir ? new PGlite(dataDir) : new PGlite();
   await client.waitReady;
   const db = drizzlePglite(client, { schema });

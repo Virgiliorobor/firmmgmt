@@ -1,3 +1,5 @@
+import { defaultPgliteFallback } from "./pglite-path";
+
 function emptyToUndefined(value: string | undefined): string | undefined {
   if (!value || value.trim() === "") return undefined;
   return value;
@@ -34,7 +36,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
   return {
     nodeEnv,
     databaseUrl: emptyToUndefined(source.DATABASE_URL),
-    pglitePath: source.PGLITE_PATH || ".data/dev",
+    pglitePath: source.PGLITE_PATH || (nodeEnv === "production" ? defaultPgliteFallback() : ".data/dev"),
     appBaseUrl: source.APP_BASE_URL || "http://localhost:3847",
     firmTimezone: source.FIRM_TIMEZONE || "America/New_York",
     firmLocale: source.FIRM_LOCALE || "en-US",
