@@ -1,0 +1,76 @@
+# Portable stack: Next.js app + PostgreSQL 16.
+# Coolify: deploy this file. Do not publish host ports — the proxy reaches `app:3847`.
+# Azure later: run the same Dockerfile/image with Azure Database for PostgreSQL.
+# Set DATABASE_URL to the Azure connection string and omit this `postgres` service.
+# Env names stay the same on every host. Do not add Coolify-only or Azure-only APIs.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3847"
+      DATABASE_URL: postgres://${POSTGRES_USER:-lfm}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-firmmgmt}
+      APP_BASE_URL: ${APP_BASE_URL}
+      CORS_ORIGINS: ${APP_BASE_URL}
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-totp-local}
+      FIRM_TIMEZONE: ${FIRM_TIMEZONE:-America/New_York}
+      FIRM_LOCALE: ${FIRM_LOCALE:-en-US}
+      SESSION_SECRET: ${SESSION_SECRET}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
+      SEED_ON_START: ${SEED_ON_START:-false}
+      TOTP_ISSUER: ${TOTP_ISSUER:-Law firm management}
+      DEMO_MANAGING_PARTNER_EMAIL: ${DEMO_MANAGING_PARTNER_EMAIL:-}
+      DEMO_MANAGING_PARTNER_PASSWORD: ${DEMO_MANAGING_PARTNER_PASSWORD:-}
+      DEMO_MANAGING_PARTNER_TOTP_SECRET: ${DEMO_MANAGING_PARTNER_TOTP_SECRET:-}
+      DEMO_ADMINISTRATIVE_MANAGER_EMAIL: ${DEMO_ADMINISTRATIVE_MANAGER_EMAIL:-}
+      DEMO_ADMINISTRATIVE_MANAGER_PASSWORD: ${DEMO_ADMINISTRATIVE_MANAGER_PASSWORD:-}
+      DEMO_ADMINISTRATIVE_MANAGER_TOTP_SECRET: ${DEMO_ADMINISTRATIVE_MANAGER_TOTP_SECRET:-}
+      DEMO_LAWYER_EMAIL: ${DEMO_LAWYER_EMAIL:-}
+      DEMO_LAWYER_PASSWORD: ${DEMO_LAWYER_PASSWORD:-}
+      DEMO_LAWYER_TOTP_SECRET: ${DEMO_LAWYER_TOTP_SECRET:-}
+      DEMO_INTEGRATION_OPERATOR_EMAIL: ${DEMO_INTEGRATION_OPERATOR_EMAIL:-}
+      DEMO_INTEGRATION_OPERATOR_PASSWORD: ${DEMO_INTEGRATION_OPERATOR_PASSWORD:-}
+      DEMO_INTEGRATION_OPERATOR_TOTP_SECRET: ${DEMO_INTEGRATION_OPERATOR_TOTP_SECRET:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "3847"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3847/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lfm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-firmmgmt}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  postgres-data:

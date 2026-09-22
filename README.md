@@ -63,11 +63,56 @@ Coolify daily Postgres backup is an owner hosting action. Restore application da
 
 Export or delete **staff login** rows (`users`, `sessions`, `totp_credentials`) with a documented admin query. Never delete client work tables in application code.
 
-## Deploy (Coolify)
+## Deploy (Coolify, Docker Compose)
 
-Dockerfile is multi-stage, non-root (`USER nextjs`), container port **3847**, health at `/api/health`. Point Coolify at this repository, branch `main`, Dockerfile build. Set the Coolify/container port to **3847** (not 3000). The public URL can still be 443 via Coolify’s proxy.
+Use **Docker Compose**, not a lone Dockerfile resource. `docker-compose.yml` starts the app and PostgreSQL 16 on one private network. The app stays 12-factor: same image, same env names, later Azure is a different host, not a rewrite.
 
-Set at least in the Coolify panel (not in git): `DATABASE_URL` (Coolify Postgres), `SESSION_SECRET`, `FIELD_ENCRYPTION_KEY`, `APP_BASE_URL`, `AUTH_PROVIDER=totp-local`, and demo `DEMO_*` users if you want a first login. Do **not** copy `PGLITE_PATH=.data/dev` into Coolify. If `DATABASE_URL` is missing, the container uses an ephemeral file database under `/tmp` so the non-root process can start; that data is lost on every redeploy. Run migrate/seed as a start command or one-off: `npm run db:migrate` then `npm run db:seed`.
+### Coolify clicks
+
+1. Stop or delete the previous **Dockerfile-only** resource for this repo if it exists (it had no Postgres).
+2. **+ New** → **Resource** → **Docker Compose** (empty / from a Git repository).
+3. Repository: `https://github.com/Virgiliorobor/firmmgmt`, branch `main`.
+4. Compose file: `docker-compose.yml`.
+5. On the **`app`** service Domains field, enter `https://YOUR-DOMAIN:3847`. The `:3847` is the **container** port for Coolify’s proxy. Public HTTPS stays 443. Do not publish a host port.
+6. Persistent Storage on **`app`**: leave **off**. Postgres already has the `postgres-data` volume in Compose. Do not add an app volume.
+7. Environment (Build/Runtime). Generate secrets on your machine, then paste:
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Use that once for `SESSION_SECRET`. Run it again for `POSTGRES_PASSWORD` (letters and numbers only, so the URL stays valid). For `FIELD_ENCRYPTION_KEY` use 64 hex chars (the same command already prints 64 hex).
+
+| Name | Value |
+|---|---|
+| `POSTGRES_USER` | `lfm` |
+| `POSTGRES_PASSWORD` | the generated password |
+| `POSTGRES_DB` | `firmmgmt` |
+| `APP_BASE_URL` | `https://YOUR-DOMAIN` (no `:3847`) |
+| `SESSION_SECRET` | 64 hex from the command |
+| `FIELD_ENCRYPTION_KEY` | 64 hex from a second run |
+| `AUTH_PROVIDER` | `totp-local` |
+| `SEED_ON_START` | `true` for the first deploy if you set demo users |
+| `DEMO_MANAGING_PARTNER_EMAIL` | a test address you control |
+| `DEMO_MANAGING_PARTNER_PASSWORD` | ≥ 12 characters |
+| `DEMO_MANAGING_PARTNER_TOTP_SECRET` | Base32 TOTP secret (e.g. `JBSWY3DPEHPK3PXP` for local demo only) |
+
+Do **not** set `DATABASE_URL` (Compose builds it as `postgres://lfm:…@postgres:5432/firmmgmt`). Do **not** set `PGLITE_PATH`, `PORT=3000`, or a host port mapping.
+
+8. Deploy. Health is `GET /api/health`. Sign-in is `https://YOUR-DOMAIN/sign-in`.
+9. After the first successful login, set `SEED_ON_START=false` so later deploys do not keep reseeding.
+
+### Azure later (no product change)
+
+Same Dockerfile and env names. Differences are hosting only:
+
+| | Coolify now | Azure later |
+|---|---|---|
+| App | Compose service `app` | Container Apps or App Service from the same image |
+| Database | Compose `postgres` + volume | Azure Database for PostgreSQL — set `DATABASE_URL` to that URL and do not run the Compose `postgres` service |
+| Public TLS | Coolify proxy | Azure Front Door / Container Apps ingress |
+| Listen port | `3847` (avoids other VPS apps) | `PORT` from Azure (often `8080`); the app already reads `PORT` |
+| Identity / files | TOTP now; Graph stub | Same `MICROSOFT_*` / `GRAPH_*` names when the tenant is ready |
 
 GitHub Actions: typecheck, lint, unit/integration, build, image build, `npm audit`, gitleaks.
 
