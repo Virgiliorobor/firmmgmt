@@ -35,7 +35,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     nodeEnv,
     databaseUrl: emptyToUndefined(source.DATABASE_URL),
     pglitePath: source.PGLITE_PATH || ".data/dev",
-    appBaseUrl: source.APP_BASE_URL || "http://localhost:3000",
+    appBaseUrl: source.APP_BASE_URL || "http://localhost:3847",
     firmTimezone: source.FIRM_TIMEZONE || "America/New_York",
     firmLocale: source.FIRM_LOCALE || "en-US",
     dedicatedIntakeAddress: emptyToUndefined(source.DEDICATED_INTAKE_ADDRESS),
@@ -55,6 +55,6 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     lockoutFailures: Number(source.LOCKOUT_FAILURES || 10),
     gitSha: source.GIT_SHA || "dev",
     seedOnStart: source.SEED_ON_START === "true",
-    corsOrigins: (source.CORS_ORIGINS || source.APP_BASE_URL || "http://localhost:3000").split(","),
+    corsOrigins: (source.CORS_ORIGINS || source.APP_BASE_URL || "http://localhost:3847").split(","),
   };
 }

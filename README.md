@@ -25,7 +25,9 @@ Docker is not required. If `DATABASE_URL` is a `postgres://` URL, the app uses P
 3. `npm install`
 4. `npm run db:migrate`
 5. `npm run db:seed`
-6. `npm run dev` → http://localhost:3000/sign-in
+6. `npm run dev` → http://localhost:3847/sign-in
+
+The app listens on **3847** (not 3000/8080) so it is less likely to collide with other services on the same server. Override with `PORT` only if that port is already taken.
 
 Load the TOTP secret into an authenticator (issuer `TOTP_ISSUER`). Passwords and TOTP secrets must not be committed.
 
@@ -63,7 +65,7 @@ Export or delete **staff login** rows (`users`, `sessions`, `totp_credentials`) 
 
 ## Deploy (Coolify)
 
-Dockerfile is multi-stage, non-root (`USER nextjs`), health at `/api/health`. Point Coolify at this repository, branch `main`, Dockerfile build.
+Dockerfile is multi-stage, non-root (`USER nextjs`), container port **3847**, health at `/api/health`. Point Coolify at this repository, branch `main`, Dockerfile build. Set the Coolify/container port to **3847** (not 3000). The public URL can still be 443 via Coolify’s proxy.
 
 Set at least in the Coolify panel (not in git): `DATABASE_URL` (Postgres), `SESSION_SECRET`, `FIELD_ENCRYPTION_KEY`, `APP_BASE_URL`, `AUTH_PROVIDER=totp-local`, and demo `DEMO_*` users if you want a first login. Run migrate/seed as a start command or one-off: `npm run db:migrate` then `npm run db:seed`.
 
