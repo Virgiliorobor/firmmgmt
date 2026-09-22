@@ -65,14 +65,14 @@ Export or delete **staff login** rows (`users`, `sessions`, `totp_credentials`) 
 
 ## Deploy (Coolify, Docker Compose)
 
-Use **Docker Compose**, not a lone Dockerfile resource. `docker-compose.yml` starts the app and PostgreSQL 16 on one private network. The app stays 12-factor: same image, same env names, later Azure is a different host, not a rewrite.
+Use **Docker Compose**, not a lone Dockerfile resource. `docker-compose.yaml` starts the app and PostgreSQL 16 on one private network. The app stays 12-factor: same image, same env names, later Azure is a different host, not a rewrite.
 
 ### Coolify clicks
 
 1. Stop or delete the previous **Dockerfile-only** resource for this repo if it exists (it had no Postgres).
 2. **+ New** → **Resource** → **Docker Compose** (empty / from a Git repository).
 3. Repository: `https://github.com/Virgiliorobor/firmmgmt`, branch `main`.
-4. Compose file: `docker-compose.yml`.
+4. Compose file: `/docker-compose.yaml` (Coolify’s default). Base Directory: `/`.
 5. On the **`app`** service Domains field, enter `https://YOUR-DOMAIN:3847`. The `:3847` is the **container** port for Coolify’s proxy. Public HTTPS stays 443. Do not publish a host port.
 6. Persistent Storage on **`app`**: leave **off**. Postgres already has the `postgres-data` volume in Compose. Do not add an app volume.
 7. Environment (Build/Runtime). Generate secrets on your machine, then paste:
