@@ -99,6 +99,8 @@ Use that once for `SESSION_SECRET`. Run it again for `POSTGRES_PASSWORD` (letter
 
 Do **not** set `DATABASE_URL` (Compose builds it as `postgres://lfm:…@postgres:5432/firmmgmt`). Do **not** set `PGLITE_PATH`, `PORT=3000`, or a host port mapping.
 
+If a previous deploy left Postgres **unhealthy**, delete the Compose volume `postgres-data` (or the whole resource volumes) before redeploying. An empty `POSTGRES_PASSWORD` on first boot can leave a bad data directory. Set `POSTGRES_PASSWORD` in Coolify; the file default `lfm-demo-change-me` is only so the container can start.
+
 8. Deploy. Health is `GET /api/health`. Sign-in is `https://YOUR-DOMAIN/sign-in`.
 9. After the first successful login, set `SEED_ON_START=false` so later deploys do not keep reseeding.
 
